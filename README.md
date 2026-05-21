@@ -28,21 +28,37 @@ If `rtk` is unavailable, `pi-rtk` still preserves normal shell behavior by falli
 
 Make sure your Pi installation is v0.60.0 or later before installing this package.
 
-For The Last Harness, use this fork at tag `tlh-v0.6.0-2` (which supersedes `tlh-v0.6.0-1`). The upstream npm artifact `npm:@sherif-fanous/pi-rtk` is **not** the TLH-patched build.
+For The Last Harness, use the TLH-published fork tag pinned by your current distribution (for example, the tag referenced by TLH's default-extension manifest). The upstream npm artifact `npm:@sherif-fanous/pi-rtk` is **not** the TLH-patched build.
+
+Recommended install source:
+
+```text
+git:github.com/diegopetrucci/pi-rtk@<tlh-tag>
+```
+
+Install directly from that tagged source:
 
 ```shell
+pi install "git:github.com/diegopetrucci/pi-rtk@<tlh-tag>"
+```
+
+Or clone the repo and check out the same TLH-published tag:
+
+```shell
+TLH_TAG=<tlh-tag>
 git clone https://github.com/diegopetrucci/pi-rtk.git
 cd pi-rtk
-git checkout tlh-v0.6.0-2
+git checkout "$TLH_TAG"
 pi install "$(pwd)"
 ```
 
 Or try the same checkout without installing it into your profile:
 
 ```shell
+TLH_TAG=<tlh-tag>
 git clone https://github.com/diegopetrucci/pi-rtk.git
 cd pi-rtk
-git checkout tlh-v0.6.0-2
+git checkout "$TLH_TAG"
 pi -e "$(pwd)/index.ts"
 ```
 
