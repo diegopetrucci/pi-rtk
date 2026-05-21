@@ -28,31 +28,35 @@ If `rtk` is unavailable, `pi-rtk` still preserves normal shell behavior by falli
 
 Make sure your Pi installation is v0.60.0 or later before installing this package.
 
+For The Last Harness, use this fork at tag `tlh-v0.6.0-2` (which supersedes `tlh-v0.6.0-1`). The upstream npm artifact `npm:@sherif-fanous/pi-rtk` is **not** the TLH-patched build.
+
 ```shell
-pi install npm:@sherif-fanous/pi-rtk
+git clone --branch tlh-v0.6.0-2 --depth 1 https://github.com/diegopetrucci/pi-rtk.git
+pi install ./pi-rtk
 ```
 
-Or try without installing:
+Or try the same checkout without installing it into your profile:
 
 ```shell
-pi -e npm:@sherif-fanous/pi-rtk
+git clone --branch tlh-v0.6.0-2 --depth 1 https://github.com/diegopetrucci/pi-rtk.git
+pi -e ./pi-rtk/index.ts
 ```
 
-To uninstall:
+To uninstall a prior install from a local checkout:
 
 ```shell
-pi remove npm:@sherif-fanous/pi-rtk
+pi remove ./pi-rtk
 ```
 
 ## How It Works
 
 ### Agent `bash` tool calls
 
-`pi-rtk` registers a replacement `bash` tool for Pi. Before the tool executes a command, the extension attempts an `rtk rewrite` and uses the rewritten command when available.
+`pi-rtk` listens to Pi's `tool_call` lifecycle event. When Pi is about to run the built-in `bash` tool and rewriting is enabled for the session, the extension attempts an `rtk rewrite` and mutates `event.input.command` only when a rewritten command is available.
 
-This preserves the normal `bash` tool interface while routing supported commands through `rtk`, which can filter and compress output before it reaches the model.
+`pi-rtk` does **not** replace or re-register the `bash` tool. Pi still owns the built-in bash execution path, approvals, rendering, and output handling.
 
-If `rtk` is unavailable, times out, or cannot rewrite the command, the original command runs unchanged.
+If `rtk` is unavailable, times out, or cannot rewrite the command, the original command input is left unchanged.
 
 #### Behavior summary
 
@@ -60,16 +64,23 @@ If `rtk` is unavailable, times out, or cannot rewrite the command, the original 
 Agent bash tool call
         │
         ▼
-pi-rtk replacement bash tool
+Pi built-in bash tool
         │
-        ├─ try: rtk rewrite "<command>"
+        ├─ pi-rtk tool_call hook
         │      │
-        │      ├─ success -> execute rewritten command
-        │      └─ failure -> execute original command unchanged
+        │      ├─ success -> mutate command input to rewritten command
+        │      └─ failure -> leave original command input unchanged
         │
         ▼
-    same bash tool interface to Pi
+normal Pi bash execution and rendering
 ```
+
+### Extension load order
+
+Pi runs `tool_call` handlers in extension load order.
+
+- If a guard, permission, or policy extension needs to inspect the **original** bash command before `pi-rtk` rewrites it, load that extension **before** `pi-rtk`.
+- If an extension only needs Pi's normal bash rendering or post-rewrite behavior (for example, `quiet-tools`), it can load **after** `pi-rtk` because `pi-rtk` leaves the built-in bash tool in place.
 
 ### User `!<cmd>` shell commands
 
@@ -133,4 +144,4 @@ That scope is intentional. `rtk`'s deny verdict comes from a permission source t
 
 If you want command-level permissions, guardrails, or shields, install a dedicated Pi extension for that. Browse [pi.dev/packages](https://pi.dev/packages) filtered by extension and search for terms like `permission`, `guardrail`, or `shield`.
 
-Those extensions compose with `pi-rtk`: they block disallowed commands at execution time, whether or not `pi-rtk` has rewritten the command.
+Those extensions compose with `pi-rtk`, but load order matters: command-inspecting `tool_call` guards should run before `pi-rtk` if they need the original command text, while rendering-focused extensions can run after it.

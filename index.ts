@@ -201,6 +201,8 @@ export default function (pi: ExtensionAPI) {
   pi.on("tool_call", (event, ctx) => {
     cacheNotify((message, level) => ctx.ui.notify(message, level));
 
+    // Keep Pi's built-in bash tool intact so later extensions can still rely
+    // on native bash rendering; this hook only rewrites the command input.
     if (event.toolName !== "bash") {
       return;
     }

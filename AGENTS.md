@@ -66,7 +66,7 @@ project-wide unless noted.
   block), inline notes naming exit-code-meaning relationships
   (`// empty stdout = exit 1 OR exit 2`), and any
   `try/catch` guard whose existence depends on rtk's contract.
-- Lifecycle handlers (`user_bash`, `bashTool.spawnHook`) wrap calls
-  in defense-in-depth handling for the rtk-unavailable / rtk-hangs
-  case. The fall-through-to-original-command behavior IS the guard;
-  do not add `try/catch` on top.
+- Lifecycle handlers (`tool_call`, `user_bash`) wrap calls in
+  defense-in-depth handling for the rtk-unavailable / rtk-hangs case.
+  The fall-through-to-original-command behavior IS the guard; do not
+  add `try/catch` on top.
