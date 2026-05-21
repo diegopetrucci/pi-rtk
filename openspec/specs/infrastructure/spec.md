@@ -2,7 +2,9 @@
 
 ## Purpose
 
-Define how `pi-rtk` integrates with Pi as an installable package that provides a replacement shell tool.
+Define how `pi-rtk` integrates with Pi as an installable package that
+hooks Pi's shell execution surfaces without replacing the built-in
+`bash` tool.
 
 ## Requirements
 
@@ -34,16 +36,68 @@ support a bare invocation with no arguments.
   listing the valid subcommands
 - **AND** the session toggle state MUST NOT change
 
-### Requirement: Bash Tool Integration
+### Requirement: Bash Tool Call Integration
 
-The system MUST provide a `bash` tool implementation that Pi uses when the `pi-rtk` package is loaded.
+The system MUST integrate with Pi's active `bash` tool through a
+`tool_call` lifecycle handler. For agent-initiated `bash` tool calls,
+`pi-rtk` MUST attempt rewrites by mutating `event.input.command` only
+when session rewriting is enabled and a rewritten command is available.
+The extension MUST NOT register or replace a `bash` tool
+implementation.
 
-#### Scenario: Extension activation
+#### Scenario: extension keeps Pi's active bash tool in place
 
-- GIVEN the `pi-rtk` extension is loaded by Pi
-- WHEN the agent invokes the `bash` tool
-- THEN Pi MUST use the `pi-rtk` `bash` tool implementation
-- AND shell command execution MUST pass through that implementation
+- **GIVEN** the `pi-rtk` extension is loaded by Pi
+- **WHEN** the agent invokes the `bash` tool
+- **THEN** Pi MUST keep using its active `bash` tool implementation
+- **AND** `pi-rtk` MUST participate by observing the `tool_call` event
+  for that tool before execution
+
+#### Scenario: rewrite success mutates bash input
+
+- **GIVEN** the session rewrite toggle is `enabled`
+- **WHEN** `pi-rtk` receives a `tool_call` event for the `bash` tool
+- **AND** `rtkRewriteCommand` returns a rewritten command
+- **THEN** `pi-rtk` MUST mutate `event.input.command` to the rewritten
+  command
+- **AND** Pi's active `bash` tool implementation MUST execute that
+  mutated command
+
+#### Scenario: no rewrite leaves original bash input unchanged
+
+- **GIVEN** the session rewrite toggle is `disabled`, or
+  `rtkRewriteCommand` does not return a rewritten command
+- **WHEN** `pi-rtk` receives a `tool_call` event for the `bash` tool
+- **THEN** `pi-rtk` MUST leave `event.input.command` unchanged
+- **AND** Pi's active `bash` tool implementation MUST continue normal
+  execution of the original command
+
+### Requirement: Tool Call Load-Order Semantics
+
+The system MUST rely on Pi's extension load order for `tool_call`
+composition. Extensions that need the original bash command text MUST
+run before `pi-rtk` mutates it, while rendering-focused bash tool
+replacements can run after `pi-rtk` because `pi-rtk` does not claim the
+`bash` tool slot.
+
+#### Scenario: guard extension sees original command
+
+- **GIVEN** a guard, permission, or policy extension also listens to
+  `tool_call`
+- **WHEN** that extension must inspect the original bash command text
+  before `pi-rtk` rewrites it
+- **THEN** that extension MUST load before `pi-rtk`
+- **AND** it MUST receive the original `event.input.command` value
+
+#### Scenario: rendering-focused bash replacement loads after pi-rtk
+
+- **GIVEN** a rendering-focused bash tool replacement such as
+  `quiet-tools`
+- **WHEN** that extension loads after `pi-rtk`
+- **THEN** `pi-rtk` MUST already have had the opportunity to mutate the
+  command input during `tool_call`
+- **AND** the later-loaded bash tool replacement MUST remain able to
+  execute and render the resulting command
 
 ### Requirement: Pi Package Installability
 
