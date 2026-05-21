@@ -31,21 +31,25 @@ Make sure your Pi installation is v0.60.0 or later before installing this packag
 For The Last Harness, use this fork at tag `tlh-v0.6.0-2` (which supersedes `tlh-v0.6.0-1`). The upstream npm artifact `npm:@sherif-fanous/pi-rtk` is **not** the TLH-patched build.
 
 ```shell
-git clone --branch tlh-v0.6.0-2 --depth 1 https://github.com/diegopetrucci/pi-rtk.git
-pi install ./pi-rtk
+git clone https://github.com/diegopetrucci/pi-rtk.git
+cd pi-rtk
+git checkout tlh-v0.6.0-2
+pi install "$(pwd)"
 ```
 
 Or try the same checkout without installing it into your profile:
 
 ```shell
-git clone --branch tlh-v0.6.0-2 --depth 1 https://github.com/diegopetrucci/pi-rtk.git
-pi -e ./pi-rtk/index.ts
+git clone https://github.com/diegopetrucci/pi-rtk.git
+cd pi-rtk
+git checkout tlh-v0.6.0-2
+pi -e "$(pwd)/index.ts"
 ```
 
-To uninstall a prior install from a local checkout:
+To uninstall a prior install from that checkout:
 
 ```shell
-pi remove ./pi-rtk
+pi remove "$(pwd)"
 ```
 
 ## How It Works
