@@ -2,7 +2,8 @@
  * pi-rtk — Pi extension that uses `rtk rewrite` to optimize shell commands.
  *
  * The extension participates in two Pi execution paths:
- * - agent-initiated `bash` tool calls via a replacement bash tool
+ * - agent-initiated `bash` tool calls via a `tool_call` hook that mutates
+ *   built-in bash tool input
  * - user-issued `!<cmd>` shell commands via the `user_bash` event
  *
  * In both paths, optimization is best-effort: when `rtk rewrite` succeeds,
@@ -16,7 +17,6 @@
 import { spawnSync } from "node:child_process";
 
 import {
-  createBashTool,
   createLocalBashOperations,
   type ExtensionAPI,
   type ExtensionContext,
@@ -196,18 +196,30 @@ function updateFooterStatus(ctx: ExtensionContext): void {
 }
 
 export default function (pi: ExtensionAPI) {
-  const cwd = process.cwd();
   const localBashOperations = createLocalBashOperations();
 
-  const bashTool = createBashTool(cwd, {
-    spawnHook: ({ command, cwd, env }) => {
-      if (!isSessionEnabled()) return { command, cwd, env };
+  pi.on("tool_call", (event, ctx) => {
+    cacheNotify((message, level) => ctx.ui.notify(message, level));
 
-      return { command: rtkRewriteCommand(command) ?? command, cwd, env };
-    },
+    if (event.toolName !== "bash") {
+      return;
+    }
+
+    if (typeof event.input.command !== "string") {
+      return;
+    }
+
+    if (!isSessionEnabled()) {
+      return;
+    }
+
+    const rewritten = rtkRewriteCommand(event.input.command);
+
+    if (rewritten !== undefined) {
+      event.input.command = rewritten;
+    }
   });
 
-  pi.registerTool(bashTool);
   pi.registerCommand("rtk", {
     description: "Control pi-rtk shell command rewriting",
     getArgumentCompletions: (prefix) => {
