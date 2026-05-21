@@ -148,9 +148,7 @@ User !!<cmd>
 - `/rtk status` shows the current toggle state, detected `rtk` binary details, and a bypass tip.
 - `/rtk` opens an overlay where you can choose the same actions interactively.
 
-The footer includes a persistent `pi-rtk` status indicator: `rtk ✓` in green when rewriting is enabled, `rtk ✗` in red when disabled.
-
-The toggle is in-memory only. It resets to enabled every time Pi restarts and is not written to disk. For a single-command bypass while leaving the session toggle enabled, use rtk's per-command form:
+The toggle is in-memory only. It resets to enabled every time Pi restarts and is not written to disk. Use `/rtk status` whenever you want to confirm the current state. For a single-command bypass while leaving the session toggle enabled, use rtk's per-command form:
 
 ```shell
 !RTK_DISABLED=1 <cmd>

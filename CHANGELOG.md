@@ -2,12 +2,20 @@
 
 This changelog follows [Common Changelog](https://common-changelog.org/).
 
+## TLH fork tags
+
+### tlh-v0.6.0-5 - 2026-05-21
+
+#### Changed
+
+- Removed the TLH fork's persistent `pi-rtk` footer/status indicator. `/rtk`, `/rtk status`, session-scoped enable/disable, missing-binary warnings, `tool_call` bash rewrites, `user_bash` rewrites, and quiet-tools-compatible load-order behavior are unchanged.
+
 ## [0.6.0] - 2026-05-13
 
 ### Added
 
 - A `/rtk` slash command for session-scoped control. `/rtk enable` and `/rtk disable` toggle rewriting on and off for the current Pi session; `/rtk status` shows the toggle state, the detected `rtk` binary version and path, and a tip on how to bypass rtk for a single command. A bare `/rtk` invocation opens an overlay with the same actions. The toggle is in-memory only and resets to enabled each time Pi starts. ([#13](https://github.com/sherif-fanous/pi-rtk/pull/13))
-- A persistent footer indicator showing whether rewriting is currently active: `rtk ✓` in green when enabled, `rtk ✗` in red when disabled. ([#13](https://github.com/sherif-fanous/pi-rtk/pull/13))
+- A persistent footer indicator showing whether rewriting is currently active: `rtk ✓` in green when enabled, `rtk ✗` in red when disabled. Historical upstream 0.6.0 behavior only; removed in TLH fork tag `tlh-v0.6.0-5`. ([#13](https://github.com/sherif-fanous/pi-rtk/pull/13))
 - A warning notification when the `rtk` binary cannot be reached. The notification fires at session start if `rtk` is missing from PATH or not executable, and again mid-session if `rtk` becomes unavailable while Pi is running. At most one notification per outage — reinstalling `rtk` mid-session resets the gate so a subsequent removal will warn again. ([#12](https://github.com/sherif-fanous/pi-rtk/pull/12))
 
 ### Changed

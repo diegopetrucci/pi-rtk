@@ -85,7 +85,6 @@ function handleRtkSubcommand(
   }
 
   setSessionEnabled(subcommand === "enable");
-  updateFooterStatus(ctx);
   ctx.ui.notify(`pi-rtk ${subcommand}d for this session`, "info");
 }
 
@@ -95,12 +94,6 @@ function isRtkSubcommand(value: string): value is RtkSubcommand {
 
 function isSessionEnabled(): boolean {
   return sessionEnabled;
-}
-
-function renderStatusText(ctx: ExtensionContext): string {
-  return isSessionEnabled()
-    ? ctx.ui.theme.fg("success", "rtk ✓")
-    : ctx.ui.theme.fg("error", "rtk ✗");
 }
 
 function rtkRewriteCommand(command: string): string | undefined {
@@ -191,10 +184,6 @@ function showRtkStatus(ctx: ExtensionContext): void {
   ctx.ui.notify(`${report.state}\n${report.binary}\n${report.tip}`, "info");
 }
 
-function updateFooterStatus(ctx: ExtensionContext): void {
-  ctx.ui.setStatus("pi-rtk", renderStatusText(ctx));
-}
-
 export default function (pi: ExtensionAPI) {
   const localBashOperations = createLocalBashOperations();
 
@@ -255,7 +244,6 @@ export default function (pi: ExtensionAPI) {
 
   pi.on("session_start", (_event, ctx) => {
     cacheNotify((message, level) => ctx.ui.notify(message, level));
-    updateFooterStatus(ctx);
 
     const result = spawnSync("rtk", ["--version"], {
       timeout: REWRITE_TIMEOUT_MS,

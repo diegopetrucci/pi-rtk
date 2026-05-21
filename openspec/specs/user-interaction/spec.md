@@ -77,8 +77,6 @@ Pi process start. The toggle MUST NOT be persisted to disk.
 - **WHEN** the user invokes `/rtk disable`
 - **THEN** the toggle MUST transition to `disabled`
 - **AND** the extension MUST surface a user-facing confirmation
-- **AND** the footer indicator MUST update to reflect the disabled
-  state
 
 #### Scenario: /rtk enable turns the toggle on
 
@@ -86,8 +84,6 @@ Pi process start. The toggle MUST NOT be persisted to disk.
 - **WHEN** the user invokes `/rtk enable`
 - **THEN** the toggle MUST transition to `enabled`
 - **AND** the extension MUST surface a user-facing confirmation
-- **AND** the footer indicator MUST update to reflect the enabled
-  state
 
 #### Scenario: toggle resets on new Pi process
 
@@ -95,27 +91,24 @@ Pi process start. The toggle MUST NOT be persisted to disk.
 - **THEN** the session toggle MUST start in the `enabled` state
 - **AND** no toggle state MUST be read from disk
 
-### Requirement: Persistent Footer State Indicator
+### Requirement: No Persistent Footer Indicator
 
-The extension MUST register a single footer status entry via
-`ctx.ui.setStatus("pi-rtk", ...)` and MUST keep that entry present
-for the lifetime of the extension. The entry MUST visually
-differentiate the `enabled` and `disabled` states. The entry MUST
-update immediately when the session toggle changes.
+The extension MUST NOT register a persistent footer or status entry
+for `pi-rtk`. Session state remains observable through `/rtk status`
+and `/rtk` command responses instead.
 
-#### Scenario: indicator present on load
+#### Scenario: extension loads without footer status
 
 - **WHEN** the `pi-rtk` extension is loaded by Pi
-- **THEN** the footer MUST display a `pi-rtk` status entry
-- **AND** the entry MUST reflect the `enabled` default state
+- **THEN** the extension MUST NOT call `ctx.ui.setStatus("pi-rtk", ...)`
+- **AND** Pi's footer MUST remain unchanged by `pi-rtk`
 
-#### Scenario: indicator updates on toggle
+#### Scenario: toggle changes do not update footer status
 
-- **GIVEN** the footer is displaying the `pi-rtk` status entry in
-  the `enabled` style
-- **WHEN** the user invokes `/rtk disable`
-- **THEN** the footer entry MUST transition to a visually distinct
-  `disabled` style
+- **GIVEN** the user invokes `/rtk enable` or `/rtk disable`
+- **WHEN** the toggle state changes
+- **THEN** the extension MUST report the change through command UI only
+- **AND** it MUST NOT render `rtk ✓`, `rtk ✗`, or any replacement footer text
 
 ### Requirement: /rtk Bare Invocation Opens Settings Overlay
 
